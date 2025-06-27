@@ -1,6 +1,7 @@
 package models
 
 type File struct {
-	path     string `json:"path" bson:"path"`
-	fileName string `json:"fileName" bson:"fileName"`
+	Path     string `json:"path" bson:"path"`
+	FileName string `json:"fileName" bson:"fileName"`
+	Section  string `json:"section" bson:"section"`
 }

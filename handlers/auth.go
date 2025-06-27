@@ -23,7 +23,7 @@ type Credentials struct {
 func Register(usersCollection *mongo.Collection) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var creds Credentials
-
+	
 		err := c.ShouldBindJSON(&creds)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "ورودی نامعتبر"})
@@ -60,7 +60,7 @@ func Login(usersCollection *mongo.Collection) gin.HandlerFunc {
 		var creds Credentials
 		err := c.ShouldBindJSON(&creds)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "ورودی نامعتبر"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 			return
 		}
 
@@ -68,14 +68,14 @@ func Login(usersCollection *mongo.Collection) gin.HandlerFunc {
 		var user models.User
 		err = usersCollection.FindOne(context.TODO(), bson.M{"username": creds.Username}).Decode(&user)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "کاربر پیدا نشد"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "No user found"})
 			return
 		}
 
 		// Compare user claimed password with real password in database using CompareHashAndPassword method
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "اطلاعات وارد شده اشتباه است"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "The informations are incorrect"})
 			return
 		}
 

@@ -18,6 +18,7 @@ type Collections struct {
 // InitDB initializes the MongoDB connection and returns the client and collections
 func InitDB() (*mongo.Client, *Collections) {
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		log.Fatal(err)
@@ -31,7 +32,7 @@ func InitDB() (*mongo.Client, *Collections) {
 	log.Println("Connected to MongoDB!")
 
 	// Database and collections
-	db := client.Database("goApp-login-register")
+	db := client.Database("Weblog-go")
 	collections := &Collections{
 		Users:    db.Collection("users"),
 		Posts:    db.Collection("posts"),

@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
-	"net/http"
 
 	"login-register/models"
 
