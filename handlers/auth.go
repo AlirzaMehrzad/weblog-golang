@@ -20,6 +20,13 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
+type ApiResponse struct {
+	Message string `json:"message"`
+	Status int    `json:"status"`
+	Data any	`json:"data"`
+	Token string `json:"token,omitempty"` // Optional field for token
+}
+
 func Register(usersCollection *mongo.Collection) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var creds Credentials
@@ -49,7 +56,14 @@ func Register(usersCollection *mongo.Collection) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
+		// c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
+		c.JSON(http.StatusCreated, ApiResponse{
+			Message: "کاربر با موفقیت ایجاد شد",
+			Status:  http.StatusCreated,
+			Data:    user,
+		})
+
+		
 	}
 }
 
@@ -79,6 +93,10 @@ func Login(usersCollection *mongo.Collection) gin.HandlerFunc {
 			return
 		}
 
+		// remove password from user data before sending response
+		user.Password = ""
+
+
 		// At last stage if password true, then generate token for logged in user using jwt middleware
 		token, err := middleware.GenerateJWT(creds.Username)
 		if err != nil {
@@ -87,7 +105,13 @@ func Login(usersCollection *mongo.Collection) gin.HandlerFunc {
 		}
 
 		// Return token and a custom message as response request
-		c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": token})
+		// c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": token})
+		c.JSON(http.StatusOK, ApiResponse{
+			Message: "ورود با موفقیت انجام شد",
+			Status:  http.StatusOK,
+			Data:    user,
+			Token:   token,
+		})
 	}
 }
 
