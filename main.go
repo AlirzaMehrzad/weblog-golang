@@ -7,6 +7,8 @@ import (
 	"login-register/router"
 	"net/http"
 	"time"
+
+
 )
 
 func main() {
@@ -22,6 +24,8 @@ func main() {
 
 	// Initialize the router
 	r := router.InitRouter(collections)
+
+	// setup validators
 
 	// Start server
 	srv := &http.Server{

@@ -6,6 +6,7 @@ import (
 	"log"
 	"login-register/middleware"
 	"login-register/models"
+	"login-register/validators"
 	"net/http"
 	"net/smtp"
 
@@ -13,7 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type Credentials struct {
@@ -40,20 +40,27 @@ func Register(usersCollection *mongo.Collection) gin.HandlerFunc {
 			return
 		}
 
-		// go SendWelcomeEmail(creds.Username)
-
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds.Password), bcrypt.DefaultCost)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-			return
-		}
-
 		user := models.User{
 			Username: creds.Username,
-			Password: string(hashedPassword),
+			Password: creds.Password,
 			Email:    creds.Email,
 		}
 
+		// Validate user data using validators package
+		if err := validators.ValidateUser(user, usersCollection); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		
+		// Hash the password using bcrypt
+		hashedPassword, err := middleware.HashPassword(user.Password)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "رمز عبور هش نشد"})
+			return
+		}
+		user.Password = hashedPassword
+
+		// Insert the user into the database
 		_, err = usersCollection.InsertOne(context.TODO(), user)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "کاربر ایجاد نشد"})
@@ -87,9 +94,8 @@ func Login(usersCollection *mongo.Collection) gin.HandlerFunc {
 		}
 
 		// Compare user claimed password with real password in database using CompareHashAndPassword method
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "رمز عبور یا نام کاربری اشتباه است"})
+		if !middleware.ComparePasswords(user.Password, creds.Password) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "نام کاربری یا رمز عبور اشتباه است"})
 			return
 		}
 
