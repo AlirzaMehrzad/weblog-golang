@@ -13,6 +13,7 @@ type Collections struct {
 	Posts    *mongo.Collection
 	Comments *mongo.Collection
 	Files    *mongo.Collection
+	Emails   *mongo.Collection
 }
 
 // InitDB initializes the MongoDB connection and returns the client and collections
@@ -38,6 +39,7 @@ func InitDB() (*mongo.Client, *Collections) {
 		Posts:    db.Collection("posts"),
 		Comments: db.Collection("comments"),
 		Files:    db.Collection("files"),
+		Emails:   db.Collection("emails"),
 	}
 
 	return client, collections

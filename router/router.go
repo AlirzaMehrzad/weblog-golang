@@ -12,7 +12,7 @@ import (
 func InitRouter(collections *db.Collections) *gin.Engine {
 	r := gin.Default()
 
-	r.POST("/register", handlers.Register(collections.Users))
+	r.POST("/register",handlers.Register(collections.Users))
 	r.POST("/login", handlers.Login(collections.Users))
 
 	// Post routes

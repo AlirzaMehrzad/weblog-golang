@@ -18,6 +18,7 @@ import (
 type Credentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	Email    string `json:"email,omitempty"` // Optional field for email
 }
 
 type ApiResponse struct {
@@ -30,7 +31,8 @@ type ApiResponse struct {
 func Register(usersCollection *mongo.Collection) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var creds Credentials
-	
+
+		// Check for incoming data from body using ShouldBindJSON method
 		err := c.ShouldBindJSON(&creds)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "ورودی نامعتبر"})
@@ -48,6 +50,7 @@ func Register(usersCollection *mongo.Collection) gin.HandlerFunc {
 		user := models.User{
 			Username: creds.Username,
 			Password: string(hashedPassword),
+			Email:    creds.Email,
 		}
 
 		_, err = usersCollection.InsertOne(context.TODO(), user)
