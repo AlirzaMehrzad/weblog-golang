@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -21,11 +22,11 @@ type Credentials struct {
 	Email    string `json:"email,omitempty"` // Optional field for email
 }
 
-type ApiResponse struct {
-	Message string `json:"message"`
-	Status int    `json:"status"`
-	Data any	`json:"data"`
-	Token string `json:"token,omitempty"` // Optional field for token
+type SafeUser struct {
+	ID       primitive.ObjectID `json:"id"`
+	Username string             `json:"username"`
+	Email    string             `json:"email"`
+	// Add other fields, but exclude Password
 }
 
 func Register(usersCollection *mongo.Collection) gin.HandlerFunc {
@@ -60,11 +61,7 @@ func Register(usersCollection *mongo.Collection) gin.HandlerFunc {
 		}
 
 		// c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
-		c.JSON(http.StatusCreated, ApiResponse{
-			Message: "کاربر با موفقیت ایجاد شد",
-			Status:  http.StatusCreated,
-			Data:    user,
-		})
+		c.JSON(http.StatusCreated, gin.H{"Message": "کاربر با موفقیت ایجاد شد"})
 
 		
 	}
@@ -82,17 +79,17 @@ func Login(usersCollection *mongo.Collection) gin.HandlerFunc {
 		}
 
 		// Query to database to find user by username property
-		var user models.User
+ 		var user models.User
 		err = usersCollection.FindOne(context.TODO(), bson.M{"username": creds.Username}).Decode(&user)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "No user found"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "نام کاربری یا رمز عبور اشتباه است"})
 			return
 		}
 
 		// Compare user claimed password with real password in database using CompareHashAndPassword method
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "The informations are incorrect"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "رمز عبور یا نام کاربری اشتباه است"})
 			return
 		}
 
@@ -108,13 +105,8 @@ func Login(usersCollection *mongo.Collection) gin.HandlerFunc {
 		}
 
 		// Return token and a custom message as response request
-		// c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": token})
-		c.JSON(http.StatusOK, ApiResponse{
-			Message: "ورود با موفقیت انجام شد",
-			Status:  http.StatusOK,
-			Data:    user,
-			Token:   token,
-		})
+		c.JSON(http.StatusOK, gin.H{"message": "ورود موفق", "token": token, "user": user})
+
 	}
 }
 
